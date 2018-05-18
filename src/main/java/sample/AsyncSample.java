@@ -7,6 +7,7 @@ import co.paralleluniverse.strands.Stranded;
 import co.paralleluniverse.fibers.FiberAsync;
 import co.paralleluniverse.fibers.SuspendExecution;
 
+import java.time.LocalDateTime;
 import java.util.Arrays;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
@@ -55,9 +56,10 @@ public class AsyncSample {
     public static void main(String[] args) throws  Exception{
 
         for(Fiber<String> f : Arrays.asList(
-                createTask("TaskA","A1", 1000, 1000),
-                createTask("TaskB","B1", 10, 10),
-                createTask("TaskC","C1", 1000, 100))){
+                createTask("TaskA","A1", 500, 500), //4,5
+                createTask("TaskB","B1", 10, 10), // 1,2
+                createTask("TaskC","C1", 400, 1000))) //3,6
+        {
 
             System.out.println(f.get());
 
@@ -79,7 +81,7 @@ public class AsyncSample {
                 System.out.println(id + ", processed after Task1, result=" + t1Res);
 
                 String t2Res = LongTask.of(t1Res, wait2).run();
-                System.out.println(id + ", processed after Task2 result=" + t2Res);
+                System.out.println( id +  ", processed after Task2, result=" + t2Res);
 
                 return t2Res;
 

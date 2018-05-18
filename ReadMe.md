@@ -11,6 +11,10 @@ I worked this program  Ubuntu 16.4 on Windows 10 WSL .
 
 ## how to run
 
++ `./gralew -PmainClass=sample.AsyncSample runMain`
+    + -PmainClass=<sample class name which you run>
+Or.
+
 + edit mainClass that you run in build.gradle 
 + `./gradlew run`
 

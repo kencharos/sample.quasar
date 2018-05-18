@@ -37,5 +37,9 @@ dependencies {
     testCompile "junit:junit:$junitVer"
 }
 
+task runMain(type:JavaExec) {
+    main = mainClass
+    classpath = sourceSets.main.runtimeClasspath
+}
 
 apply from: "gradle/agent.gradle"
