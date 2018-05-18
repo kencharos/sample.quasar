@@ -1,0 +1,13 @@
+tasks.withType(Test) {
+    jvmArgs "-javaagent:${configurations.quasar.iterator().next()}" // =v, =d
+}
+
+tasks.withType(JavaExec) {
+    jvmArgs '-server'
+    jvmArgs "-javaagent:${configurations.quasar.iterator().next()}" // =vdmc (verbose, debug, allow monitors, check class)
+}
+
+//javaagent:${configurations.quasar.iterator().next()}
+//applicationDefaultJvmArgs = [
+//        "-javaagent:${configurations.quasar.iterator().next()}" // =v, =d
+//]

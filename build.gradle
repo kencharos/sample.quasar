@@ -1,0 +1,41 @@
+group 'me.kencharos'
+version '1.0-SNAPSHOT'
+
+apply plugin: 'java'
+apply plugin: 'application'
+
+//mainClassName = "sample.AsyncSample"
+mainClassName = "sample.MyFirstFiber"
+
+sourceCompatibility = 1.8
+ext.classifier      = ':jdk8' // ':'
+
+ext.quasarVer       = '0.7.7'
+
+ext.junitVer        = '4.12'
+
+[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+
+configurations {
+    quasar
+}
+
+
+repositories {
+//    mavenLocal()
+    mavenCentral()
+//    maven { url "https://oss.sonatype.org/content/repositories/releases" }
+//    maven { url 'https://oss.sonatype.org/content/repositories/snapshots' }
+//    maven { url 'https://maven.java.net/content/repositories/snapshots' }
+}
+
+dependencies {
+    compile "co.paralleluniverse:quasar-core:${quasarVer}${classifier}"
+
+    quasar "co.paralleluniverse:quasar-core:${quasarVer}${classifier}"
+
+    testCompile "junit:junit:$junitVer"
+}
+
+
+apply from: "gradle/agent.gradle"
