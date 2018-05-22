@@ -1,38 +1,52 @@
 package sample;
 
-import co.paralleluniverse.fibers.Fiber;
-import co.paralleluniverse.fibers.FiberUtil;
+import co.paralleluniverse.fibers.*;
 import co.paralleluniverse.strands.Strand;
 import co.paralleluniverse.strands.Stranded;
-import co.paralleluniverse.fibers.FiberAsync;
-import co.paralleluniverse.fibers.SuspendExecution;
 
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.time.LocalDateTime;
 import java.util.Arrays;
+import java.util.List;
+import java.util.Random;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
+import java.util.function.Supplier;
+import java.util.stream.Collector;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 import java.util.stream.Stream;
 
 
 abstract  class LongTask extends FiberAsync<String, RuntimeException> {
 
+    private static final String LINE = IntStream.range(0, 2024).boxed()
+            .map(i -> "0").collect(Collectors.joining());
+
+    private static final List<String> LINES = IntStream.range(0, 5000)
+            .boxed().map(i -> LINE).collect(Collectors.toList());
+
+
     // 非同期処理の結果として、 result をセット。
-    protected void successAfter(String result, int wait) {
+    protected void process(String input, int weight) {
         try {
-            Thread.sleep(wait);
-        } catch (InterruptedException e) {
-            e.printStackTrace();
+            Files.write(Paths.get("/tmp/" + input),  LINES.subList(0, weight));
+            Files.delete(Paths.get("/tmp/" + input));
+            asyncCompleted(input + input);
+        } catch (IOException e) {
+            asyncFailed(e);
         }
-        asyncCompleted(result);
     }
 
 
     // 指定時間待機し、結果を記録
-    public static LongTask of(String initialState, int wait) {
+    public static LongTask of(String initialState, int weight) {
         return  new LongTask() {
             @Override
             protected void requestAsync(){
-                successAfter(initialState + initialState, wait);
+                process(initialState, weight);
             }
         };
     }
@@ -55,13 +69,15 @@ public class AsyncSample {
 
     public static void main(String[] args) throws  Exception{
 
-        for(Fiber<String> f : Arrays.asList(
-                createTask("TaskA","A1", 500, 500), //4,5
-                createTask("TaskB","B1", 10, 10), // 1,2
-                createTask("TaskC","C1", 400, 1000))) //3,6
+
+
+        Random r = new Random();
+        for(Fiber<String> f : IntStream.range(0, 100).boxed()
+                .map(i -> createTask("Task_" + i, "Ans_"+i, r.nextInt(5000) , r.nextInt(5000)))
+                .collect(Collectors.toList()))
         {
 
-            System.out.println(f.get());
+            System.out.println("\t finished, " + f.get());
 
         }
 
@@ -70,18 +86,18 @@ public class AsyncSample {
     /**
      * async/awati ライク に、2つの非同期処理を組み合わせて、1つのタスクを作るサンプル。
      */
-    private static Fiber<String> createTask(String id, String initialState, int wait1, int wait2) {
+    private static Fiber<String> createTask(String id, String initialState, int weight1, int weight2) {
         return new Fiber<String>() {
 
             @Override
             protected String run() throws SuspendExecution, InterruptedException {
 
                 // 非同期タスクを生成して、同期的な書き方で実行できる。
-                String t1Res = LongTask.of(initialState, wait1).run();
-                System.out.println(id + ", processed after Task1, result=" + t1Res);
+                String t1Res = LongTask.of(initialState, weight1).run();
+                System.out.println(id + " first finish, result=" + t1Res);
 
-                String t2Res = LongTask.of(t1Res, wait2).run();
-                System.out.println( id +  ", processed after Task2, result=" + t2Res);
+                String t2Res = LongTask.of(t1Res, weight2).run();
+                System.out.println( id + " second finish, result=" + t2Res);
 
                 return t2Res;
 
